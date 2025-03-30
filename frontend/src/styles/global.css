@@ -1,0 +1,107 @@
+/* 导入变量 - 如果使用link标签在HTML中引入，则不需要此行 */
+@import './variables.css';
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--background);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.app-container {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+/* 标题样式 */
+h1, h2, h3 {
+  text-shadow: var(--text-shadow);
+}
+
+/* 按钮样式 */
+.el-button {
+  border-radius: 8px;
+  border: 1px solid rgba(67, 97, 238, 0.2);
+  transition: var(--transition-smooth);
+}
+
+.el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.el-button--primary {
+  background-color: var(--primary);
+}
+
+.el-button--secondary {
+  background-color: var(--secondary);
+}
+
+.el-button--accent {
+  background-color: var(--accent);
+}
+
+/* 卡片样式 */
+.el-card {
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--card-shadow);
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: var(--transition-smooth);
+}
+
+.el-card:hover {
+  box-shadow: 0 12px 24px rgba(67, 97, 238, 0.15);
+}
+
+/* 输入框样式 */
+.el-input .el-input__inner,
+.el-textarea .el-textarea__inner {
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.el-input .el-input__inner:focus,
+.el-textarea .el-textarea__inner:focus {
+  transform: scale(1.01);
+  box-shadow: 0 6px 12px -2px rgba(67, 97, 238, 0.2);
+}
+
+/* 微动效 */
+@keyframes subtle-float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+.float-animation {
+  animation: subtle-float 4s ease-in-out infinite;
+}
+
+/* 结果区域淡入效果 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .el-radio-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .el-radio-group .el-radio {
+    margin: 8px 0;
+  }
+  
+  .qa-card {
+    margin: 12px !important;
+  }
+}

@@ -1,0 +1,10 @@
+/* 全局CSS变量 */
+:root {
+    --primary: #4361EE;
+    --secondary: #3A0CA3;
+    --accent: #FF7D00;
+    --background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%);
+    --card-shadow: 0 8px 16px rgba(67, 97, 238, 0.1);
+    --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
