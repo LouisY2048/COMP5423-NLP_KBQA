@@ -1,3 +1,14 @@
+# Specific files
+/data/
+/log/
+/tmp/
+metrics_caclulation
+/frontend/node_modules
+/checkpoints/
+logs/
+models/
+retrieval/pre-trained-models/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
