@@ -1,7 +1,7 @@
 """
 训练模型脚本，用于训练和保存KBQA系统中的检索模型
 支持训练:
-1. Dense Retrieval模型 (基于BERT的语义检索)
+1. Dense Retrieval模型 (基于ColBERT的语义检索)
 2. Keyword Retrieval模型 (基于BM25的关键词检索)
 """
 
@@ -12,11 +12,31 @@ import argparse
 from datetime import datetime
 from retrieval.dense_retrieval import DenseRetriever
 from retrieval.keyword_retrieval import KeywordRetriever
+import torch
+from typing import List, Dict, Any
 
 """
 python train_model.py --model dense
 python train_model.py --model keyword
 """
+def load_jsonl(file_path: str) -> List[Dict[str, Any]]:
+    """Load data from jsonl file"""
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            data.append(json.loads(line.strip()))
+    return data
+
+def prepare_documents(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Prepare documents for indexing"""
+    documents = []
+    for item in data:
+        doc = {
+            'document_id': item['document_id'],
+            'document_text': item['document_text']  # Using document text
+        }
+        documents.append(doc)
+    return documents
 
 def load_training_data(file_path):
     """
@@ -45,52 +65,38 @@ def train_dense_retriever(args):
     print("\n" + "="*50)
     print(f"开始训练Dense Retrieval模型")
     print("="*50)
+
+    # Load documents and training data
+    print("加载文档和训练数据...")
+    documents = load_jsonl(args.docs_file)
+    train_data = load_jsonl(args.train_file)
     
-    # 加载训练数据
-    train_data = load_training_data(args.train_file)
+    print(f"加载了 {len(documents)} 文档和 {len(train_data)} 条训练数据")
     
-    # 配置固定的输出路径
-    output_path = os.path.join(args.output_dir, "dense_retriever")
-    os.makedirs(output_path, exist_ok=True)
-    
-    # 初始化模型
-    print(f"初始化Dense Retriever (chunk_size: {args.chunk_size})")
+    # Initialize retriever
+    print("初始化DenseRetriever...")
     retriever = DenseRetriever(
-        chunk_size=args.chunk_size,
-        chunk_overlap=args.chunk_overlap,
-        top_k=args.top_k,
-        word2vec_path="retrieval/pre-trained-models/GoogleNews-vectors-negative300.bin"
+        model_name='sentence-transformers/all-MiniLM-L6-v2',
+        index_type='Flat',
+        device='cuda' if os.environ.get('CUDA_VISIBLE_DEVICES') else 'cpu'
     )
     
-    # 训练模型
-    print("\n开始训练...")
-    retriever.train(
-        training_data=train_data,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        learning_rate=args.learning_rate,
-        warmup_ratio=args.warmup_ratio,
-        output_path=output_path
-    )
+    # Prepare documents
+    print("准备文档...")
+    doc_data = prepare_documents(documents)
     
-    print(f"\n训练完成！模型已保存到: {output_path}")
+    # Build index and train
+    print("构建索引和训练...")
+    retriever.build_index(doc_data, train_data=train_data)
     
-    # 保存训练配置
-    config = {
-        'model_type': 'dense',
-        'train_file': args.train_file,
-        'chunk_size': args.chunk_size,
-        'chunk_overlap': args.chunk_overlap,
-        'top_k': args.top_k,
-        'train_samples': len(train_data),
-        'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S")
-    }
+    # Save model and index
+    print(f"保存模型和索引到 {args.output_dir}")
+    retriever.save_index(args.output_dir)
+    print("完成!")
+
+    output_path = os.path.join(args.output_dir, "dense_retriever")
     
-    with open(os.path.join(output_path, 'training_config.json'), 'w', encoding='utf-8') as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-    
-    print(f"训练配置已保存到: {os.path.join(output_path, 'training_config.json')}")
-    
+    print(f"\n训练完成！模型和索引已保存到: {output_path}")
     return output_path
 
 def train_keyword_retriever(args):
@@ -146,7 +152,6 @@ def train_keyword_retriever(args):
         json.dump(config, f, indent=2, ensure_ascii=False)
     
     print(f"训练配置已保存到: {config_path}")
-    
     return output_path
 
 def parse_args():
@@ -156,9 +161,11 @@ def parse_args():
     # 基本参数
     parser.add_argument('--model', type=str, required=True, choices=['dense', 'keyword'],
                        help='要训练的模型类型: dense(密集向量检索) 或 keyword(关键词检索)')
-    parser.add_argument('--train_file', type=str, default='../data/train.jsonl',
+    parser.add_argument('--train_file', type=str, default='data/train.jsonl',
                        help='训练数据文件路径')
-    parser.add_argument('--output_dir', type=str, default='models',
+    parser.add_argument('--docs_file', type=str, default='data/documents.jsonl',
+                       help='文档数据文件路径')
+    parser.add_argument('--output_dir', type=str, default='/backend/models',
                        help='模型输出目录')
     parser.add_argument('--top_k', type=int, default=5,
                        help='检索时返回的文档数量')
@@ -169,20 +176,19 @@ def parse_args():
     parser.add_argument('--chunk_overlap', type=int, default=50,
                        help='文本分块重叠大小(单词数)')
     
-    # 训练参数
-    parser.add_argument('--epochs', type=int, default=3,
-                       help='训练轮数')
-    parser.add_argument('--batch_size', type=int, default=16,
-                       help='批处理大小')
-    parser.add_argument('--learning_rate', type=float, default=2e-5,
-                       help='学习率')
-    parser.add_argument('--warmup_ratio', type=float, default=0.1,
-                       help='预热步数比例')
+    # Dense Retrieval参数
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
+                       help='训练设备 (cuda/cpu)')
+    
+    # BM25参数
+    parser.add_argument('--k1_range', type=float, nargs=2, default=[1.2, 2.0],
+                       help='BM25 k1参数范围')
+    parser.add_argument('--b_range', type=float, nargs=2, default=[0.5, 0.8],
+                       help='BM25 b参数范围')
     
     return parser.parse_args()
 
 def main():
-    """主函数"""
     args = parse_args()
     
     # 检查输出目录
