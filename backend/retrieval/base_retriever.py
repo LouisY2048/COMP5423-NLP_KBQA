@@ -1,18 +1,34 @@
+"""Base retriever class that defines the interface for all retrievers."""
+
+from abc import ABC, abstractmethod
+from .base_chunker import BaseChunker
+from typing import List, Dict, Any, Optional, Tuple
 import os
 import json
-from .base_chunker import BaseChunker
 
-class BaseRetriever(BaseChunker):
-    """检索器的基类，提供通用的检索和保存/加载功能"""
+class BaseRetriever(ABC):
+    """Abstract base class for all retrievers"""
     
     def __init__(self, top_k=5, chunk_size=50, chunk_overlap=20):
-        super().__init__(chunk_size, chunk_overlap)
+        """Initialize the retriever"""
         self.top_k = top_k
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
     
-    def retrieve(self, question):
-        """检索相关文档"""
+    @abstractmethod
+    def retrieve(self, query: str, **kwargs) -> Dict[str, Any]:
+        """
+        Retrieve relevant documents for the query
+        
+        Args:
+            query: Query text
+            **kwargs: Additional arguments
+            
+        Returns:
+            Dictionary containing retrieved results
+        """
         # 获取文档级别的得分
-        doc_scores = self._get_doc_scores(question)
+        doc_scores = self._get_doc_scores(query)
         
         # 获取top-k文档
         top_doc_ids = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)[:5]

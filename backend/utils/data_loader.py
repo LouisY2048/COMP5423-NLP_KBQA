@@ -2,7 +2,7 @@ import json
 import os
 
 class DataLoader:
-    def __init__(self, data_dir='../data'):
+    def __init__(self, data_dir='data'):
         self.data_dir = data_dir
         self.documents = {}
         self.train_data = []

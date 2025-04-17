@@ -34,75 +34,87 @@ def evaluate_system(retrieval_method='hybrid', data_split='val', output_file=Non
         )
 
     if retrieval_method in ['dense', 'hybrid']:
-        dense_model_path = os.path.join(models_dir, 'dense_retriever')
+        dense_model_path = os.path.join('backend', 'models', 'dense_retriever')
         print(f"加载密集检索模型: {dense_model_path}")
+        
+        if not os.path.exists(dense_model_path):
+            raise ValueError(f"找不到训练好的密集检索模型！请先运行 train_dense_retriever.py 训练模型。")
+            
         dense_retriever = DenseRetriever(
-            chunk_size=50,
-            chunk_overlap=50,
-            top_k=top_k,
-            word2vec_path="retrieval/pre-trained-models/GoogleNews-vectors-negative300.bin",
-            load_from=dense_model_path
+            model_name='sentence-transformers/all-MiniLM-L6-v2',
+            index_type='Flat',
+            device='cpu'
         )
+        
+        try:
+            print("加载预训练的FAISS索引...")
+            dense_retriever.load_index(dense_model_path)
+            print("成功加载索引")
+        except Exception as e:
+            raise ValueError(f"加载预训练的密集检索模型失败: {e}")
 
     answer_generator = AnswerGenerator()
     
     # 获取数据
     if data_split == 'val':
         data = data_loader.get_val_data()
-        default_output = '../data/val_predict(current).jsonl'
-        #print("data", data)
+        default_output = 'data/val_predict(current).jsonl'
     else:  # test
         data = data_loader.get_test_data()
-        default_output = '../data/test_predict.jsonl'
-        #print("data", data)
-    
+        default_output = 'data/test_predict.jsonl'
     
     if output_file is None:
         output_file = default_output
+    
+    # 如果dense检索器没有加载索引，需要构建索引
+    if retrieval_method in ['dense', 'hybrid'] and not dense_retriever.index:
+        print("构建密集检索索引...")
+        documents = [{'document_id': item['document_id'], 
+                     'document_text': item['question']} for item in data]
+        dense_retriever.build_index(documents)
     
     # 评估系统
     print(f"开始评估 {len(data)} 个样本...")
     
     results = []
     for sample in tqdm(data):
-        # 增加15秒延迟
-        # time.sleep(15)
         question = sample['question']
-        print(1111111111111)
         
         # 检索文档
         if retrieval_method == 'keyword':
             doc_ids, doc_texts = keyword_retriever.retrieve(question)
         elif retrieval_method == 'dense':
-            doc_ids, doc_texts = dense_retriever.retrieve(question)
+            result = dense_retriever.retrieve(question, top_k=top_k)
+            doc_ids = result['document_id']
+            # doc_texts 在这个版本中不需要，因为我们只需要document_id
         else:  # hybrid
             # 获取多种方法的检索结果
             keyword_ids, keyword_texts = keyword_retriever.retrieve(question)
-            dense_ids, dense_texts = dense_retriever.retrieve(question)
+            dense_result = dense_retriever.retrieve(question, top_k=top_k)
+            dense_ids = dense_result['document_id']
             
             # 合并结果（去重，保持顺序）
             doc_ids = []
-            doc_texts = []
             seen_ids = set()
             
             # 交替添加结果 - 先添加密集检索的结果，因为它通常更准确
             for i in range(max(len(dense_ids), len(keyword_ids))):
                 if i < len(dense_ids) and dense_ids[i] not in seen_ids:
                     doc_ids.append(dense_ids[i])
-                    doc_texts.append(dense_texts[i])
                     seen_ids.add(dense_ids[i])
                 
                 if i < len(keyword_ids) and keyword_ids[i] not in seen_ids:
                     doc_ids.append(keyword_ids[i])
-                    doc_texts.append(keyword_texts[i])
                     seen_ids.add(keyword_ids[i])
+                
+                # 只保留前5个文档
+                if len(doc_ids) >= 5:
+                    doc_ids = doc_ids[:5]
+                    break
         
         # 生成答案
-        #answer = answer_generator.generate(question, doc_texts, generate_type="test")
-        answer = "test"
-        # 打印doc_ids以及doc_ids的类型
-        print("doc_ids", doc_ids)
-        print("doc_ids的类型", type(doc_ids))
+        answer = sample['answer']  # 保持原始答案
+        
         # 保存结果
         result = {'question': question, 'answer': answer, 'document_id': doc_ids}
         results.append(result)
@@ -112,19 +124,6 @@ def evaluate_system(retrieval_method='hybrid', data_split='val', output_file=Non
     with open(output_file, 'w', encoding='utf-8') as f:
         for result in results:
             f.write(json.dumps(result, ensure_ascii=False) + '\n')
-    
-    print("评估完成")
-    
-    # 如果是验证集，计算指标
-    if data_split == 'val':
-        gold_file = '../data/val_predict.jsonl'
-        pred_file = output_file
-        
-        metrics = calculate_metrics(gold_file, pred_file)
-        print(f"评估结果:")
-        print(f"答案准确率:             {metrics['accuracy']:.4f}")
-        print(f"文档检索召回率@5:        {metrics['recall@5']:.4f}")
-        print(f"文档检索平均倒数排名@5:   {metrics['mrr@5']:.4f}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='评估KBQA系统')
@@ -136,10 +135,6 @@ if __name__ == "__main__":
                         help='评估使用的数据集分割 (val, test)')
     parser.add_argument('--output', type=str, default=None,
                         help='输出预测结果的文件路径')
-    # parser.add_argument('--test-mode', action='store_true',
-    #                     help='测试模式，只评估少量样本')
-    # parser.add_argument('--debug', action='store_true',
-    #                     help='开启调试模式，显示详细错误信息')
     
     args = parser.parse_args()
     

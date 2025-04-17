@@ -74,7 +74,7 @@ if __name__ == "__main__":
     }
     '''
     gold_file_name = 'data/val.jsonl'
-    pred_file_name = 'data/val_predict.jsonl'
+    pred_file_name = 'data/val_predict(current).jsonl'
     
     metrics = calculate_metrics(gold_file_name, pred_file_name)
     print(f"Evaluation Result:", flush=True)
