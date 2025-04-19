@@ -1,3 +1,14 @@
+"""
+Main API server for the Knowledge Base Question Answering System.
+This module provides the FastAPI application that handles:
+1. Document retrieval using dense retrieval methods
+2. Answer generation using a large language model
+3. API endpoints for question answering and health checks
+
+Usage:
+    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+"""
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,19 +19,11 @@ from contextlib import asynccontextmanager
 from retrieval.dense_retrieval import DenseRetriever
 from generation.answer_generator import AnswerGenerator
 
-"""
-# 启动命令
-    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-"""
-
-
-# 初始化检索器和生成器
 dense_retriever = None
 answer_generator = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时执行
     global dense_retriever, answer_generator
     print("Loading retrieval models...")
     dense_retriever = DenseRetriever()
@@ -28,14 +31,12 @@ async def lifespan(app: FastAPI):
     answer_generator = AnswerGenerator()
     print("System ready!")
     
-    yield  # 此处暂停，直到应用关闭
+    yield
     
-    # 关闭时执行
     print("Shutting down...")
 
 app = FastAPI(title="KBQA System API", lifespan=lifespan)
 
-# 允许跨域请求
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -56,19 +57,16 @@ class AnswerResponse(BaseModel):
 
 @app.post("/api/ask", response_model=AnswerResponse)
 async def ask_question(request: QuestionRequest):
+    """Ask a question to the KBQA system and get an answer"""
     try:
-        # 检查检索器是否已初始化
         if dense_retriever is None:
             raise HTTPException(status_code=500, detail="Dense retriever not initialized")
             
-        # 根据选择的检索方法获取相关文档
         if request.retrieval_method == "dense":
             try:
-                # 首先获取文档ID
                 result = dense_retriever.retrieve(request.question)
                 doc_ids = result["document_id"]
                 
-                # 使用answer_question_by_chunks获取文档文本
                 chunks_result = dense_retriever.answer_question_by_chunks(
                     request.question,
                     retrieved_doc_ids=doc_ids
@@ -80,11 +78,9 @@ async def ask_question(request: QuestionRequest):
         else:
             raise HTTPException(status_code=400, detail="Invalid retrieval method")
         
-        # 检查生成器是否已初始化
         if answer_generator is None:
             raise HTTPException(status_code=500, detail="Answer generator not initialized")
             
-        # 生成答案
         try:
             answer = answer_generator.generate(request.question, chunk_texts, generate_type="user")
         except Exception as e:

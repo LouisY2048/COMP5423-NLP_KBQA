@@ -1,107 +1,115 @@
-# KBQA 知识库问答系统
+# Knowledge Base Question Answering System
 
-基于NQ10K数据集的知识库问答(Knowledge Base Question Answering, KBQA)系统。该系统使用多种检索方法从知识库中检索相关文档，并使用大型语言模型生成答案。
+A Knowledge Base Question Answering (KBQA) system based on the NQ10K dataset. This system search for relevant documents from the knowledge base and uses a large language model to generate answers.
 
-## 项目结构
+## Project Structure
 
 ```
 /
-|---data/              # 存放数据集
-|---backend/           # 存放后端代码
-|   |---utils/         # 工具函数
-|   |---retrieval/     # 文档检索模块
-|   |---generation/    # 答案生成模块
-|   |---main.py        # 后端入口文件
-|   |---evaluation.py  # 评估脚本
-|---frontend/          # 存放前端代码
-|   |---src/           # 前端源代码
-|   |---public/        # 公共资源
+|---data/              # Dataset storage
+|---backend/           # Backend code
+|   |---utils/         # Utility functions
+|   |---retrieval/     # Document retrieval module
+|   |---generation/    # Answer generation module
+|   |---models/        # Model files
+|   |---main.py        # Backend entry point
+|   |---evaluation.py  # Evaluation script
+|---frontend/          # Frontend code
+|   |---src/           # Frontend source code
+|   |---public/        # Public resources
 ```
 
-## 系统功能
+## System Features
 
-该系统实现了三个主要功能：
+The system implements three main features:
 
-1. **文档检索**
-   - 关键词检索：使用TF-IDF算法进行基于关键词的检索
+1. **Document Retrieval**
+   - Keyword-based retrieval using TF-IDF algorithm
+   - Vector space retrieval using Sentence-Transformer
 
+2. **Answer Generation**
+   - Utilizes Qwen2.5-7B-Instruct large language model
+   - Generates answers based on retrieved documents
+   - Implements carefully designed prompt templates
 
-2. **答案生成**
-   - 使用Qwen2.5-7B-Instruct大型语言模型生成基于检索文档的答案
+3. **User Interface**
+   - Intuitive interface for question input
+   - Preset question suggestions
+   - Displays retrieved documents and generated answers
+   - Responsive design with modern UI elements
 
-3. **用户界面**
-   - 提供直观的用户界面，用户可以输入问题并选择检索方法
-   - 显示检索到的相关文档和生成的答案
+## Installation and Setup
 
-## 安装与运行
+### Prerequisites
 
-### 后端
+- Python 3.11.x
+- Node.js 14.0 or higher
+- npm 6.0 or higher
 
-1. 安装依赖
+### Backend Setup
 
+1. Create and activate a virtual environment (recommended):
+
+2. Install Python dependencies:
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-2. 运行服务器
+### Frontend Setup
 
-```bash
-cd backend
-python main.py
-```
-
-### 前端
-
-1. 安装依赖
-
+1. Install Node.js dependencies(Files are already included in submitted source code):
 ```bash
 cd frontend
 npm install
 ```
 
-2. 开发模式运行
+## Running the System
 
+### Backend Server
+
+1. Start the backend server:
+```bash
+cd backend
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+The server will run on `http://localhost:8000`
+
+### Frontend Development
+
+1. Start the development server(Create a new command line terminal to finish this step!!!):
 ```bash
 cd frontend
 npm run serve
 ```
+The frontend will be available at `http://localhost:3000`
 
-3. 构建生产版本
 
+## Please note that there is already test_predict.jsonl in the project and it is in the root directory. If you do not need to regenerate test_predict.jsonl, please ignore the following sections.
+## Important Notes Before Create Test_predict File From 0 to 1
+
+To prepare for creating test_predict file, please:
+
+1. Data Preprocessing:
+   -Document preprocessing:
 ```bash
-cd frontend
-npm run build
+python backend/utils/doc_modifier.py
 ```
 
-## 评估系统
-
-使用提供的脚本评估系统性能：
-
+2. Train model and save relavant parameters
+   -For keyword retrieval solution:
 ```bash
-cd backend
-python evaluation.py --retrieval hybrid --split val
+python backend/train_model.py --model keyword
+```
+   -For dense retrieval solution:
+```bash
+python backend/train_model.py --model dense
+```
+3. Predict for test data
+```bash
+python backend/create_test_file.py
 ```
 
-参数说明：
-- `--retrieval`: 检索方法，可选值为 `keyword`, `vector`, `dense`, `hybrid`
-- `--split`: 数据集分割，可选值为 `val`, `test`
-- `--output`: 输出文件路径（可选）
+## License
 
-## 系统架构
-
-### 1. 检索模块
-
-系统实现了三种文档检索方法：
-
-- **关键词检索(BM25)**：传统的基于关键词匹配的检索方法
-- **向量空间检索**：使用Sentence-BERT将文档和问题映射到向量空间，计算相似度
-- **密集通道检索(DPR)**：使用预训练BERT模型单独对问题和文档进行编码，并使用FAISS进行高效的最近邻搜索
-
-### 2. 答案生成模块
-
-使用Qwen2.5-7B-Instruct模型，基于检索到的文档内容生成答案。通过精心设计的提示模板，引导模型生成准确、信息丰富的答案。
-
-### 3. 前端界面
-
-使用Vue.js构建的用户友好界面，支持问题输入、检索方法选择、展示检索文档和生成的答案。
+This project is licensed under the MIT License - see the LICENSE file for details.

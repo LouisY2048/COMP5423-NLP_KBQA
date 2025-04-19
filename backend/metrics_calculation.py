@@ -14,8 +14,8 @@ def calculate_metrics(gold_file, pred_file):
     mrr_5_sum = 0
     
     # 收集所有的答案对用于批量计算BERT Score
-    gold_answers = [str(gold['answer']).lower() for gold in gold_data]
-    pred_answers = [str(pred['answer']).lower() for pred in pred_data]
+    gold_answers = [gold['answer'].lower() for gold in gold_data]
+    pred_answers = [pred['answer'].lower() for pred in pred_data]
     
     # 计算BERT Score
     P, R, F1 = score(pred_answers, gold_answers, lang="en", verbose=False)
@@ -23,7 +23,7 @@ def calculate_metrics(gold_file, pred_file):
     bert_scores = F1.tolist()
     
     for i, (gold, pred) in enumerate(zip(gold_data, pred_data)):
-        if str(gold['answer']).lower() == str(pred['answer']).lower():
+        if gold['answer'].lower() == pred['answer'].lower():
             correct += 1
 
         true_doc_id = gold['document_id']

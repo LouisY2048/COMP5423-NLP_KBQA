@@ -1,3 +1,14 @@
+"""
+Evaluation script for the Knowledge Base Question Answering System.
+This module provides functionality to:
+1. Generate predictions using different retrieval methods (dense or keyword)
+2. Evaluate the system's performance using various metrics
+3. Compare results against ground truth data
+
+Usage:
+    python evaluation.py --model [dense|keyword]
+"""
+
 import metrics_calculation as mc
 import retrieval.dense_retrieval as dr
 import retrieval.keyword_retrieval as kr
@@ -6,43 +17,35 @@ import argparse
 from generation.answer_generator import AnswerGenerator
 from tqdm import tqdm
 import os
+
 def predict_retrieval(gold_file_name, pred_file_name):
-    # 初始化DenseRetriever或KeywordRetriever
+    """Predict retrieval results"""
     if args.model == 'dense':
         retriever = dr.DenseRetriever()
     elif args.model == 'keyword':
         retriever = kr.KeywordRetriever(chunk_size=200, chunk_overlap=50)
-    
-    # 加载测试数据
+
     with open(gold_file_name, 'r', encoding='utf-8') as f:
         test_data = [json.loads(line) for line in f]
     
-    # 生成预测结果
     predictions = []
-    # 添加进度条
-    for item in tqdm(test_data, desc="生成预测结果中", unit="question"):
+    for item in tqdm(test_data, desc="Generating predictions", unit="question"):
         try:
             question = item['question']
-            # 使用模型进行检索
             result = retriever.retrieve(question, top_k=5, use_chunks=True)
 
-            # 然后使用LLM生成答案
             answer_generator = AnswerGenerator()
             answer = answer_generator.generate(question, result['chunks'], generate_type='test')
             print(f"{answer}")
-            # 处理答案格式
             try:
-                # 尝试解析JSON
                 answer_dict = json.loads(answer)
                 answer_text = str(answer_dict.get('answer', ''))
             except json.JSONDecodeError:
-                # 如果不是JSON格式，直接使用原始答案
                 answer_text = str(" ")
 
             if answer_text == " ":
                 answer_text = "The answer could be any of the following: it depends on the specific context and situation, as there are multiple possible answers that could be correct based on different interpretations and perspectives. The exact answer may vary depending on various factors and conditions"
                 
-            # 确保answer_text是字符串类型
             if not isinstance(answer_text, str):
                 answer_text = str(answer_text)
 
@@ -53,10 +56,9 @@ def predict_retrieval(gold_file_name, pred_file_name):
                 'document_id': result['document_id'],
             })
         except Exception as e:
-            print(f"处理问题 '{question}' 时出错: {str(e)}")
+            print(f"Error processing question '{question}': {str(e)}")
             continue
     
-    # 保存预测结果
     with open(pred_file_name, 'w', encoding='utf-8') as f:
         for pred in predictions:
             f.write(json.dumps(pred, ensure_ascii=False) + '\n')
@@ -66,9 +68,9 @@ def evaluate_retrieval(gold_file_name, pred_file_name):
     return metrics
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='评估KBQA系统检索模型')
+    parser = argparse.ArgumentParser(description='Evaluate KBQA system retrieval models')
     parser.add_argument('--model', type=str, required=True, choices=['dense', 'keyword'],
-                       help='要评估的模型类型: dense(密集向量检索) 或 keyword(关键词检索)')
+                       help='Model type to evaluate: dense (dense vector retrieval) or keyword (keyword retrieval)')
     return parser.parse_args()
 
 if __name__ == "__main__":

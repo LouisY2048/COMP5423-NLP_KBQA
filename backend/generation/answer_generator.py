@@ -1,3 +1,15 @@
+"""
+Answer Generator module for the Knowledge Base Question Answering System.
+This module provides functionality to:
+1. Generate answers using the Qwen2.5-7B-Instruct model
+2. Create prompts for different types of queries (user/test)
+3. Handle API communication with the model service
+
+Usage:
+    generator = AnswerGenerator()
+    answer = generator.generate(question, contexts, generate_type="user" or "test")
+"""
+
 import requests
 import json
 import tiktoken
@@ -9,19 +21,16 @@ class AnswerGenerator:
         self.api_key = "sk-vlcegmesrbdosyevomhivhfycryltocxwxtwwvwwnqtjqsxo"
     
     def create_prompt(self, question, contexts, generate_type):
-        """创建提示"""
-        # 格式化上下文
+        """create prompt"""
         formatted_contexts = ""
         for i, context in enumerate(contexts):
             formatted_contexts += f"文档片段 {i}:\n{context}\n\n"
         
-        # 系统提示
         system_message = """
         You are a knowledge base question answering system. Please answer the user's questions according to the content of the provided documentation.
         Don't make up information that isn't in the documents. The answer should be concise and clear, and should be in English.
         """
         if generate_type == "user":
-            # 创建用户消息
             user_message = f"""The following documents are available:
             {formatted_contexts}
             You need to answer all questions based on the documents above, and just give me the answer, don't give me any other information or your thoughts: 
@@ -32,7 +41,6 @@ class AnswerGenerator:
                 -If you can't answer the question that you think is correct, just return “Sorry, I don't know.”.
             """
         elif generate_type == "test":
-            # 创建测试消息
             test_message = f"""The following documents are available:
             {formatted_contexts}
             You need to answer all questions based on the documents above: 
@@ -62,11 +70,9 @@ class AnswerGenerator:
             ]
     
     def generate(self, question, contexts, generate_type="test"):
-        """生成答案"""
-        # 创建消息
+        """generate answer"""
         messages = self.create_prompt(question, contexts, generate_type)
         
-        # 准备API请求
         payload = {
             "model": self.model,
             "messages": messages,
@@ -83,23 +89,19 @@ class AnswerGenerator:
         }
         
         try:
-            # 发送API请求
             response = requests.post(self.api_url, json=payload, headers=headers)
-            #print("response", response)
             
-            # 解析响应
             response_data = response.json()
-            #print("response_data", response_data)
             
             if "error" in response_data or "code" in response_data:
-                return f"生成答案时出现错误: {json.dumps(response_data, ensure_ascii=False)}"
+                return f"Error occured when generating answer: {json.dumps(response_data, ensure_ascii=False)}"
                 
             answer = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
             return answer.strip()
             
         except Exception as e:
-            print(f"API请求错误: {e}")
-            return f"生成答案时出现错误，请稍后再试。错误: {str(e)}"
+            print(f"Error occured when generating answer: {e}")
+            return f"Error occured when generating answer: {str(e)}"
 
 
 if __name__ == "__main__":

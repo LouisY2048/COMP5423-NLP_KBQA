@@ -19,5 +19,5 @@ pynvml>=11.5.0
 einops>=0.6.1
 
 
-# GPU加速 (取消注释以启用)
+# GPU acceleration (uncomment to enable)
 # pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
