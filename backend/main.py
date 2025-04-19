@@ -5,34 +5,25 @@ from typing import List, Optional
 import uvicorn
 from contextlib import asynccontextmanager
 
-from retrieval.keyword_retrieval import KeywordRetriever
 from retrieval.dense_retrieval import DenseRetriever
 from generation.answer_generator import AnswerGenerator
 
+"""
 # 启动命令
-# uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+"""
+
 
 # 初始化检索器和生成器
-keyword_retriever = None
 dense_retriever = None
 answer_generator = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 启动时执行
-    global keyword_retriever, dense_retriever, answer_generator
+    global dense_retriever, answer_generator
     print("Loading retrieval models...")
-    keyword_retriever = KeywordRetriever(
-        chunk_size=50,
-        chunk_overlap=50,
-        top_k=5
-    )
-    dense_retriever = DenseRetriever(
-        chunk_size=50,
-        chunk_overlap=50,
-        top_k=5,
-        word2vec_path="retrieval/pre-trained-models/GoogleNews-vectors-negative300.bin"
-    )
+    dense_retriever = DenseRetriever()
     print("Loading answer generation model...")
     answer_generator = AnswerGenerator()
     print("System ready!")
@@ -55,7 +46,7 @@ app.add_middleware(
 
 class QuestionRequest(BaseModel):
     question: str
-    retrieval_method: str = "hybrid"  # keyword, vector, dense, hybrid
+    retrieval_method: str = "dense"
 
 class AnswerResponse(BaseModel):
     question: str
@@ -66,52 +57,51 @@ class AnswerResponse(BaseModel):
 @app.post("/api/ask", response_model=AnswerResponse)
 async def ask_question(request: QuestionRequest):
     try:
+        # 检查检索器是否已初始化
+        if dense_retriever is None:
+            raise HTTPException(status_code=500, detail="Dense retriever not initialized")
+            
         # 根据选择的检索方法获取相关文档
-        if request.retrieval_method == "keyword":
-            doc_ids, doc_texts = keyword_retriever.retrieve(request.question)
-        elif request.retrieval_method == "dense":
-            doc_ids, doc_texts = dense_retriever.retrieve(request.question)
-        elif request.retrieval_method == "hybrid":
-            # 结合所有检索方法
-            keyword_ids, keyword_texts = keyword_retriever.retrieve(request.question)
-            dense_ids, dense_texts = dense_retriever.retrieve(request.question)
-            
-            # 简单合并去重，保持顺序
-            doc_ids = []
-            doc_texts = []
-            seen_ids = set()
-            
-            # 交替添加结果 - 先添加密集检索的结果，因为它通常更准确
-            for i in range(max(len(dense_ids), len(keyword_ids))):
-                if i < len(dense_ids) and dense_ids[i] not in seen_ids:
-                    doc_ids.append(dense_ids[i])
-                    doc_texts.append(dense_texts[i])
-                    seen_ids.add(dense_ids[i])
+        if request.retrieval_method == "dense":
+            try:
+                # 首先获取文档ID
+                result = dense_retriever.retrieve(request.question)
+                doc_ids = result["document_id"]
                 
-                if i < len(keyword_ids) and keyword_ids[i] not in seen_ids:
-                    doc_ids.append(keyword_ids[i])
-                    doc_texts.append(keyword_texts[i])
-                    seen_ids.add(keyword_ids[i])
-                
-                # 只保留前5个文档
-                if len(doc_ids) >= 5:
-                    doc_ids = doc_ids[:5]
-                    doc_texts = doc_texts[:5]
-                    break
+                # 使用answer_question_by_chunks获取文档文本
+                chunks_result = dense_retriever.answer_question_by_chunks(
+                    request.question,
+                    retrieved_doc_ids=doc_ids
+                )
+                chunk_texts = chunks_result["chunks"]
+            except Exception as e:
+                print(f"Error in dense retrieval: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Error in dense retrieval: {str(e)}")
         else:
             raise HTTPException(status_code=400, detail="Invalid retrieval method")
         
+        # 检查生成器是否已初始化
+        if answer_generator is None:
+            raise HTTPException(status_code=500, detail="Answer generator not initialized")
+            
         # 生成答案
-        answer = answer_generator.generate(request.question, doc_texts, generate_type="user")
+        try:
+            answer = answer_generator.generate(request.question, chunk_texts, generate_type="user")
+        except Exception as e:
+            print(f"Error in answer generation: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error in answer generation: {str(e)}")
         
         return {
             "question": request.question,
             "answer": answer,
             "document_id": doc_ids,
-            "documents": doc_texts
+            "documents": chunk_texts
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 @app.get("/api/health")
 async def health_check():

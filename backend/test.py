@@ -1,10 +1,9 @@
+# 测试cuda是否可用
+import torch
 import os
-import sys
+print(torch.cuda.is_available())
+print(os.environ.get('CUDA_VISIBLE_DEVICES'))
 
-# Add project root to Python path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-print(f"Current directory: {current_dir}")
-backend_dir = os.path.dirname(os.path.dirname(current_dir))
-print(f"Backend directory: {backend_dir}")
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print(f"Project root: {project_root}")
+# 测试faiss是否可用
+import faiss
+print(faiss.get_num_gpus())

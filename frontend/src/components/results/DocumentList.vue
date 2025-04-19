@@ -7,7 +7,7 @@
       </h3>
       <el-collapse v-model="activeDocuments" class="document-collapse">
         <el-collapse-item 
-          v-for="(doc, index) in documents" 
+          v-for="(doc, index) in displayedDocuments" 
           :key="index"
           :title="`Document ${index + 1}`"
           :name="index"
@@ -36,6 +36,11 @@ export default {
     documents: {
       type: Array,
       default: () => []
+    }
+  },
+  computed: {
+    displayedDocuments() {
+      return this.documents.slice(0, 5)
     }
   }
 }

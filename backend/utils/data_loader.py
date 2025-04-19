@@ -22,7 +22,7 @@ class DataLoader:
     
     def _load_documents(self):
         """加载文档数据"""
-        doc_path = os.path.join(self.data_dir, 'documents.jsonl')
+        doc_path = os.path.join(self.data_dir, 'documents_modified.jsonl')
         print(f"加载文档数据从 {doc_path}")
         
         with open(doc_path, 'r', encoding='utf-8') as f:

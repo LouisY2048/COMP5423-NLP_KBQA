@@ -6,8 +6,7 @@ metrics_caclulation
 /frontend/node_modules
 /checkpoints/
 logs/
-models/
-retrieval/pre-trained-models/
+backend/models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

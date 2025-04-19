@@ -1,7 +1,6 @@
 """Base retriever class that defines the interface for all retrievers."""
 
 from abc import ABC, abstractmethod
-from .base_chunker import BaseChunker
 from typing import List, Dict, Any, Optional, Tuple
 import os
 import json

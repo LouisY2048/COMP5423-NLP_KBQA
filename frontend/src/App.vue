@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <div class="dynamic-bg"></div>
     <app-header />
     
     <el-main class="main-content">
@@ -11,7 +12,6 @@
         </template>
         
         <query-input v-model:question="question" />
-        <method-selector v-model:method="retrievalMethod" />
         
         <div class="search-actions">
           <el-button 
@@ -26,10 +26,10 @@
         </div>
         
         <transition name="fade">
-          <div v-if="answer || retrievedDocuments.length" class="result-container">
+          <div v-if="answer || (retrievedDocuments && retrievedDocuments.length > 0)" class="result-container">
             <el-divider content-position="center">Results</el-divider>
             <answer-display :answer="answer" />
-            <document-list :documents="retrievedDocuments" />
+            <document-list :documents="retrievedDocuments || []" />
           </div>
         </transition>
       </el-card>
@@ -45,7 +45,6 @@ import { ElMessage } from 'element-plus'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppFooter from './components/layout/AppFooter.vue'
 import QueryInput from './components/results/QueryInput.vue'
-import MethodSelector from './components/results/MethodSelector.vue'
 import AnswerDisplay from './components/results/AnswerDisplay.vue'
 import DocumentList from './components/results/DocumentList.vue'
 
@@ -56,14 +55,12 @@ export default {
     AppHeader,
     AppFooter,
     QueryInput,
-    MethodSelector,
     AnswerDisplay,
     DocumentList
   },
   data() {
     return {
       question: '',
-      retrievalMethod: 'keyword',
       loading: false,
       answer: '',
       retrievedDocuments: []
@@ -88,7 +85,7 @@ export default {
           },
           body: JSON.stringify({
             question: this.question,
-            retrieval_method: this.retrievalMethod
+            retrieval_method: 'dense'
           })
         })
         
@@ -96,8 +93,8 @@ export default {
         
         // 使用动画效果显示结果
         setTimeout(() => {
-          this.answer = data.answer
-          this.retrievedDocuments = data.documents
+          this.answer = data.answer || ''
+          this.retrievedDocuments = data.documents || []
           
           ElMessage({
             message: 'Query processed successfully',
@@ -121,17 +118,52 @@ export default {
 <style>
 @import './styles/global.css';
 
+.app-container {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.dynamic-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .main-content {
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding: 40px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .qa-card {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
 .card-header {
