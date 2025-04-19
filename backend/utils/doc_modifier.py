@@ -9,6 +9,9 @@ Key Features:
 3. Removes unwanted sections (e.g., "Contents", "See also")
 4. Supports batch processing with GPU acceleration
 5. Handles document formatting and structure
+
+Usage:
+    python backend/utils/doc_modifier.py
 """
 
 import os
@@ -190,7 +193,7 @@ class DocumentModifier:
         
         print(f"Processing completed! Processed {len(modified_docs)} documents")
         print(f"Processed documents saved to: {output_file}")
-    
+
 def main():
     modifier = DocumentModifier()
     modifier.process_documents()

@@ -5,6 +5,8 @@ This module tests the availability of required hardware and libraries:
 2. FAISS GPU support
 3. Environment variable configuration
 
+Usage:
+    python backend/create_test_file.py
 """
 
 import torch
@@ -31,7 +33,6 @@ def create_test_file(test_file_name, pred_file_name):
 
             answer_generator = AnswerGenerator()
             answer = answer_generator.generate(question, result['chunks'], generate_type='test')
-            print(f"{answer}")
             try:
                 answer_dict = json.loads(answer)
                 answer_text = str(answer_dict.get('answer', ''))
@@ -44,7 +45,6 @@ def create_test_file(test_file_name, pred_file_name):
             if not isinstance(answer_text, str):
                 answer_text = str(answer_text)
 
-            print(f"{answer_text}")
             predictions.append({
                 'question': question,
                 'answer': answer_text,

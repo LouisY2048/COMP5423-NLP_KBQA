@@ -8,6 +8,10 @@ Key Features:
 2. Implements efficient vector similarity search
 3. Supports document chunking and overlap
 4. Provides model saving and loading functionality
+
+Usage:
+    retriever = DenseRetriever()
+    result = retriever.retrieve(query,top_k=5,use_chunks=(True or False))
 """
 
 import os

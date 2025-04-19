@@ -8,12 +8,16 @@ Usage:
     python train_model.py --model [dense|keyword] [options]
 
 Options:
+    --model: Model type to train: dense (dense vector retrieval) or keyword (keyword retrieval)
     --train_file: Path to training data file
     --docs_file: Path to document data file
     --output_dir: Directory to save trained models
     --device: Training device (cuda/cpu)
     --max_features_range: Range of TF-IDF max_features parameters
     --epochs: Number of training epochs
+    --chunk_size: Chunk size for keyword retrieval
+    --chunk_overlap: Chunk overlap for keyword retrieval
+    --top_k: Top k for retrieval
 """
 
 import os

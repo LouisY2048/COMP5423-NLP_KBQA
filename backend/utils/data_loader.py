@@ -9,6 +9,12 @@ Key Features:
 3. Provides document retrieval by ID
 4. Handles data preprocessing and formatting
 
+Usage:
+    loader = DataLoader()
+    documents = loader.get_all_documents()
+    train_data = loader.get_train_data()
+    val_data = loader.get_val_data()
+    test_data = loader.get_test_data()
 """
 
 import json

@@ -7,7 +7,7 @@ This module provides functionality to:
 
 Usage:
     generator = AnswerGenerator()
-    answer = generator.generate(question, contexts, generate_type="user" or "test")
+    answer = generator.generate(question, contexts, generate_type=("user" or "test"))
 """
 
 import requests
@@ -36,7 +36,8 @@ class AnswerGenerator:
             You need to answer all questions based on the documents above, and just give me the answer, don't give me any other information or your thoughts: 
             {question}
             **Important notes:**
-                -The answer should only be the name of an entity (such as a person, place or movie name), a specific number or time(format like "Day(if have) Month(full month name if have) Year(if have)"). Please do not provide any other data as an answer.
+                -The answer should only be the name of an entity (such as a person, place or movie name), a specific number or time.
+                -The format of time should be like "Day(if have) Month(full month name if have) Year(if have)", don't confuse the relative order of the day, month, and year.
                 -If you can't answer the question base on the documents, just return the answer that you think is correct. But don't make up any information and the answer should be as brief as possible too.
                 -If you can't answer the question that you think is correct, just return “Sorry, I don't know.”.
             """
@@ -46,13 +47,13 @@ class AnswerGenerator:
             You need to answer all questions based on the documents above: 
             {question}
             Please respond in the format {{"question": ...., "answer": ....}}, and the answer should be as brief as possible, the examples are as follow:
-            Examples:
             {{"question": "when did the 1st world war officially end", "answer": "11 November 1918"}}
             {{"question": "name of the actor who plays captain america", "answer": "Christopher Robert Evans"}}
             {{"question": "when is the men's ice hockey winter olympics 2018", "answer": "between 14 and 25 February"}}
             
             **Important notes:**
-                -The answer should only be the name of an entity (such as a person, place or movie name), a specific number or time(format like "Day(if have) Month(full month name if have) Year(if have)"). Please do not provide any other data as an answer.
+                -The answer should only be the name of an entity (such as a person, place or movie name), a specific number or time.
+                -The format of time should be like "Day(if have) Month(full month name if have) Year(if have)", don't confuse the relative order of the day, month, and year.
                 -If you can't answer the question base on the documents, just return the answer that you think is correct. But don't make up any information and the answer should be as brief as possible too.
                 -If you can' answer the question that you think is correct, just return " ".
                 -Insure that respond in the format {{"question": ...., "answer": ....}}, don't add any other extra information.

@@ -9,6 +9,10 @@ Key Features:
 3. Supports document chunking and overlap
 4. Provides model saving and loading functionality
 5. GPU acceleration support for faster processing
+
+Usage:
+    retriever = KeywordRetriever()
+    result = retriever.retrieve(query,top_k=5,use_chunks=(True or False))
 """
 
 import os

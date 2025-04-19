@@ -8,6 +8,10 @@ Key Features:
 2. Common configuration parameters (top_k, chunk_size, chunk_overlap)
 3. Basic document scoring and retrieval interface
 4. Model saving and loading functionality
+
+Usage:
+    retriever = BaseRetriever()
+    result = retriever.retrieve(query)
 """
 
 from abc import ABC, abstractmethod

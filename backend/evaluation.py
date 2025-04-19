@@ -7,6 +7,9 @@ This module provides functionality to:
 
 Usage:
     python evaluation.py --model [dense|keyword]
+
+Options:
+    --model: Model type to evaluate: dense (dense vector retrieval) or keyword (keyword retrieval)
 """
 
 import metrics_calculation as mc
@@ -36,7 +39,6 @@ def predict_retrieval(gold_file_name, pred_file_name):
 
             answer_generator = AnswerGenerator()
             answer = answer_generator.generate(question, result['chunks'], generate_type='test')
-            print(f"{answer}")
             try:
                 answer_dict = json.loads(answer)
                 answer_text = str(answer_dict.get('answer', ''))
@@ -49,7 +51,6 @@ def predict_retrieval(gold_file_name, pred_file_name):
             if not isinstance(answer_text, str):
                 answer_text = str(answer_text)
 
-            print(f"{answer_text}")
             predictions.append({
                 'question': question,
                 'answer': answer_text,
