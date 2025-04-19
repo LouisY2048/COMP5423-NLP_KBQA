@@ -11,7 +11,10 @@
           </div>
         </template>
         
-        <query-input v-model:question="question" />
+        <query-input 
+          v-model:question="question" 
+          @search="submitQuestion"
+        />
         
         <div class="search-actions">
           <el-button 
