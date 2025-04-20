@@ -5,7 +5,7 @@
         <span class="title-text" @mouseover="isHovered = true" @mouseleave="isHovered = false">
           <span class="text-container">
             <span class="text-primary" :class="{ 'fade-out': isHovered }">Knowledge Base Question Answering System</span>
-            <span class="text-secondary" :class="{ 'fade-in': isHovered }">Answer What You Don't Know</span>
+            <span class="text-secondary" :class="{ 'fade-in': isHovered }">Answer What You Want</span>
           </span>
         </span>
       </h1>

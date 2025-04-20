@@ -6,7 +6,7 @@ This module provides the FastAPI application that handles:
 3. API endpoints for question answering and health checks
 
 Usage:
-    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    python main.py
 """
 
 from fastapi import FastAPI, HTTPException
