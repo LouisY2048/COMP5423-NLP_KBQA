@@ -55,8 +55,8 @@ class AnswerGenerator:
                 -The answer should only be the name of an entity (such as a person, place or movie name), a specific number or time.
                 -The format of time should be like "Day(if have) Month(full month name if have) Year(if have)", don't confuse the relative order of the day, month, and year.
                 -If you can't answer the question base on the documents, just return the answer that you think is correct. But don't make up any information and the answer should be as brief as possible too.
-                -If you can' answer the question that you think is correct, just return " ".
-                -Insure that respond in the format {{"question": ...., "answer": ....}}, don't add any other extra information.
+                -If you can't answer the question that you think is correct, just return " ".
+                -Ensure that respond in the format {{"question": ...., "answer": ....}}, don't add any other extra information.
         """
 
         if generate_type == "test":

@@ -50,7 +50,7 @@ The system implements three main features:
 
 1. Create and activate a virtual environment (recommended):
 
-2. Install Python dependencies:
+2. Install Python dependencies(Please ensure that you are in the virtual envionment):
 ```bash
 cd backend
 pip install -r requirements.txt
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ### Frontend Setup
 
-1. Install Node.js dependencies(Files are already included in submitted source code):
+1. Install Node.js dependencies:
 ```bash
 cd frontend
 npm install
@@ -71,7 +71,7 @@ npm install
 1. Start the backend server:
 ```bash
 cd backend
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+python main.py
 ```
 The server will run on `http://localhost:8000`
 
