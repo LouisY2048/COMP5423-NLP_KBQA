@@ -39,7 +39,7 @@ from typing import Dict, Any, List
 project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class KeywordRetriever(BaseRetriever):
-    def __init__(self, chunk_size, chunk_overlap, top_k=5, load_from='backend/retrieval/models/keyword_retriever'):
+    def __init__(self, chunk_size, chunk_overlap, top_k=5, load_from='backend/models/keyword_retriever'):
         super().__init__(top_k, chunk_size, chunk_overlap)
         try:
             nltk.data.find('tokenizers/punkt')
@@ -375,3 +375,7 @@ class KeywordRetriever(BaseRetriever):
         self.tfidf_matrix = sp.csr_matrix(matrix_data)
         
         print(f"TF-IDF model and document blocks loaded from {path}") 
+
+if __name__ == "__main__":
+    print("project_dir: ", project_dir)
+
