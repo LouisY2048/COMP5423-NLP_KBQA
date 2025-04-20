@@ -1,5 +1,5 @@
 beautifulsoup4>=4.12.2
-bert-score>=0.3.14
+bert-score>=0.3.0
 fastapi>=0.95.0
 uvicorn>=0.24.0
 pydantic>=2.4.2

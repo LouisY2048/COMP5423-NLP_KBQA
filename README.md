@@ -51,9 +51,13 @@ The system implements three main features:
 1. Create and activate a virtual environment (recommended):
 
 2. Install Python dependencies(Please ensure that you are in the virtual envionment):
+
+
 ```bash
 cd backend
 pip install -r requirements.txt
+# Since this project uses torch GPU acceleration dependencies, if you want to start the project (rather than just using test_predict.jsonl for result analysis), you need to install relavant dependencies that matches the version of your CUDA. ​​The following is an installation command based on cuda 12.6 for reference.
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 ```
 
 ### Frontend Setup
@@ -68,10 +72,20 @@ npm install
 
 ### Backend Server
 
+1. Data Preprocessing:
+   -Document preprocessing:
+```bash
+python backend/utils/doc_modifier.py
+```
+
+2. Train model
+```bash
+python backend/train_model.py --model dense
+```
+
 1. Start the backend server:
 ```bash
-cd backend
-python main.py
+python backend/main.py
 ```
 The server will run on `http://localhost:8000`
 
@@ -97,11 +111,11 @@ python backend/utils/doc_modifier.py
 ```
 
 2. Train model and save relavant parameters
-   -For keyword retrieval solution:
+   - For keyword retrieval solution:
 ```bash
 python backend/train_model.py --model keyword
 ```
-   -For dense retrieval solution:
+   - For dense retrieval solution:
 ```bash
 python backend/train_model.py --model dense
 ```
